@@ -1,3 +1,5 @@
+import src.player as player
+
 import json
 
 class Tile(object):
@@ -6,6 +8,15 @@ class Tile(object):
 
     def img_src(self) -> str:
         raise NotImplementedError()
+
+    def on_use_empty(
+        self, my_x: int, my_y: int, p: player.Player
+    ) -> tuple[bool, str | None]:
+        if not self.passable:
+            return False, "You can't walk through that!"
+
+        p.x, p.y = my_x, my_y
+        return True, None
 
 # tile definitions:
 

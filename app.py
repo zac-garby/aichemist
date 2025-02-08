@@ -33,8 +33,11 @@ def move_player(direction):
     if direction not in ['l', 'r', 'u', 'd']:
         return { "error": "Invalid direction" }, 400
 
-    success = state.move_player(direction)
-    return { "ok": success }, 200
+    success, msg = state.move_player(direction)
+    return {
+        "ok": success,
+        "message": msg,
+    }, 200
 
 @app.post("/api/upload-image")
 def upload_image():

@@ -7,6 +7,8 @@ const renderScale: number = 64
 const sideTapProximity: number = 128
 const sideMoveProximity: number = 1
 
+var messageTimeoutID: number | undefined = undefined
+
 var cam = { x: 0, y: 0 }
 
 function startGame() {
@@ -39,11 +41,37 @@ async function sendAction(url: string): Promise<State> {
         })
         .then(r => r.json())
         .then(j => {
+            if (j.message) {
+                showMessage(j.message)
+            }
+
             if (!j.ok) {
                 return Promise.reject(new Error("Action was not successful"))
             }
         })
         .then(fetchState)
+        .catch(err => state)
+}
+
+function showMessage(message: string, timeout: number = 3000) {
+    var box = document.getElementById("message-box")!
+
+    if (!box.hidden) {
+        box.hidden = true
+
+        if (messageTimeoutID !== undefined) {
+            clearTimeout(messageTimeoutID)
+        }
+
+        setTimeout(() => showMessage(message), 200)
+    } else {
+        box.textContent = message
+        box.hidden = false
+
+        messageTimeoutID = setTimeout(() => {
+            box.hidden = true
+        }, timeout)
+    }
 }
 
 function handleGameClick(event: MouseEvent) {
@@ -57,7 +85,7 @@ function handleGameClick(event: MouseEvent) {
     else if (y < sideTapProximity) direction = "u"
     else if (y > rect.height - sideTapProximity) direction = "d"
 
-    sendAction(`/api/move-player/${direction}`)
+    if (direction) sendAction(`/api/move-player/${direction}`)
 }
 
 function getRealCameraPosition(): { x: number, y: number } {

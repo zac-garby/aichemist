@@ -4,7 +4,11 @@
         "module": "ESNext",
         "strict": true,
         "esModuleInterop": true,
-        "outDir": "static/js"
+        "outDir": "static/js",
+        "lib": [
+            "ESNext",
+            "DOM"
+        ]
     },
     "include": [
         "ts/*.ts"
