@@ -33,15 +33,31 @@ async function fetchState(): Promise<State> {
         })
 }
 
+async function sendAction(url: string): Promise<State> {
+    return fetch(url, {
+            "method": "POST"
+        })
+        .then(r => r.json())
+        .then(j => {
+            if (!j.ok) {
+                return Promise.reject(new Error("Action was not successful"))
+            }
+        })
+        .then(fetchState)
+}
+
 function handleGameClick(event: MouseEvent) {
     const rect = gameCanvas.getBoundingClientRect()
     const x = event.clientX - rect.left
     const y = event.clientY - rect.top
+    let direction
 
-    if (x < sideTapProximity) state.player.x += -1
-    else if (x > rect.width - sideTapProximity) state.player.x += 1
-    else if (y < sideTapProximity) state.player.y += -1
-    else if (y > rect.height - sideTapProximity) state.player.y += 1
+    if (x < sideTapProximity) direction = "l"
+    else if (x > rect.width - sideTapProximity) direction = "r"
+    else if (y < sideTapProximity) direction = "u"
+    else if (y > rect.height - sideTapProximity) direction = "d"
+
+    sendAction(`/api/move-player/${direction}`)
 }
 
 function getRealCameraPosition(): { x: number, y: number } {

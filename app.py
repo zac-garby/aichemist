@@ -28,6 +28,14 @@ def get_state():
         "state": state,
     }, 200
 
+@app.post("/api/move-player/<direction>")
+def move_player(direction):
+    if direction not in ['l', 'r', 'u', 'd']:
+        return { "error": "Invalid direction" }, 400
+
+    success = state.player.move(direction)
+    return { "ok": success }, 200
+
 @app.post("/api/upload-image")
 def upload_image():
     data = request.get_json()
@@ -36,9 +44,7 @@ def upload_image():
     image = Image.open(BytesIO(image_data))
     image.save("static/img/image.png")
 
-    return {
-        "path": "/static/img/image.png",
-    }, 200
+    return { "path": "/static/img/image.png" }, 200
 
 if __name__ == '__main__':
     app.run(debug=True)
