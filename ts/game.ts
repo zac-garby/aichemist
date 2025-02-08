@@ -1,7 +1,7 @@
 var state: State
 var gameCanvas: HTMLCanvasElement
 var gameContext: CanvasRenderingContext2D
-var tileImages: Map<string, HTMLImageElement> = new Map()
+var images: Map<string, HTMLImageElement> = new Map()
 var renderScale: number = 64
 
 var cam = { x: 0, y: 0 }
@@ -11,8 +11,8 @@ function startGame() {
     gameContext = gameCanvas.getContext("2d")!
 
     fetchState()
-        .then(preloadTileImages)
-        .then(renderMap)
+        .then(preloadImages)
+        .then(render)
 }
 
 async function fetchState(): Promise<State> {
@@ -32,28 +32,37 @@ function resetCanvas() {
     gameContext.imageSmoothingEnabled = false
 }
 
-function renderMap() {
+function render() {
     resetCanvas()
-
     gameContext.translate(-cam.x, -cam.y)
+    renderMap()
+    renderPlayer()
+    requestAnimationFrame(render)
+}
 
+function renderPlayer() {
+    const img = images.get(state.player.img)!
+    gameContext.drawImage(img, 0, 0, img.width, img.height, state.player.x, state.player.y, 1, 1)
+}
+
+function renderMap() {
     for (let y = 0; y < state.map.height; y++) {
         for (let x = 0; x < state.map.width; x++) {
             const tile = state.map.tiles[y][x]
-            const img = tileImages.get(tile.img)!
+            const img = images.get(tile.img)!
             gameContext.drawImage(img, 0, 0, img.width, img.height, x, y, 1, 1)
         }
     }
-
-    requestAnimationFrame(renderMap)
 }
 
-async function preloadTileImages(): Promise<Map<string, HTMLImageElement>> {
-    var toLoad: Set<string> = new Set()
+async function preloadImages(): Promise<Map<string, HTMLImageElement>> {
+    var toLoad: Set<string> = new Set([
+        "/static/img/player.png",
+    ])
 
     state.map.tiles.forEach(row => row.forEach(tile => {
         const src = tile.img
-        if (!tileImages.has(src)) {
+        if (!images.has(src)) {
             toLoad.add(src)
         }
     }))
@@ -62,7 +71,7 @@ async function preloadTileImages(): Promise<Map<string, HTMLImageElement>> {
         src => new Promise((resolve, reject) => {
             const img = new Image()
             img.onload = () => {
-                tileImages.set(src, img)
+                images.set(src, img)
                 resolve(img)
             }
 
@@ -72,5 +81,5 @@ async function preloadTileImages(): Promise<Map<string, HTMLImageElement>> {
             img.src = src
             img.loading = "eager"
         })
-    )).then(_ => tileImages)
+    )).then(_ => images)
 }

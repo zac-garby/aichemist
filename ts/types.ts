@@ -10,8 +10,13 @@ interface TileMap {
     tiles: Array<Array<Tile>>
 }
 
+interface Player {
+    x: number
+    y: number
+    img: string
+}
+
 interface State {
     map: TileMap
-    player_x: number
-    player_y: number
+    player: Player
 }

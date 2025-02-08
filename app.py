@@ -1,4 +1,5 @@
 from flask import Flask, request, send_from_directory
+from flask_compress import Compress
 from PIL import Image
 from io import BytesIO
 from src.json import Provider
@@ -8,9 +9,10 @@ import src.game as game
 import base64
 
 app = Flask(__name__, static_folder='static')
+Compress(app)
 app.json = Provider(app=app)
 
-state = game.State(32, 16)
+state = game.State(128, 128)
 
 @app.route('/')
 def index():
