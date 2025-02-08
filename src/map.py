@@ -6,7 +6,8 @@ class Map(object):
         self.width = width
         self.height = height
 
-        self.tiles = []
+        self.tiles: list[list[tile.Tile]] = []
+
         for y in range(height):
             row = []
             for x in range(width):
