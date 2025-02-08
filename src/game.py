@@ -23,4 +23,12 @@ class State(object):
             return False, None
 
         the_tile = self.map.tiles[new_y][new_x]
-        return the_tile.on_use_empty(new_x, new_y, self.player)
+
+        if self.player.selected_item is not None:
+            item = self.player.items[self.player.selected_item]
+            ok, msg = the_tile.on_use_with(new_x, new_y, self.player, item)
+            if ok:
+                self.player.selected_item = None
+            return ok, msg
+        else:
+            return the_tile.on_use_empty(new_x, new_y, self.player)

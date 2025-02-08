@@ -1,34 +1,36 @@
 * {
     box-sizing: border-box;
     font-family: monospace;
+    user-select: none;
 }
 
 html {
     background-color: black;
+    font-size: 18pt;
 }
 
 body {
     display: grid;
     grid-template-columns: 100%;
-    grid-template-rows: 35% auto 50%;
+    grid-template-rows: 35% auto 40%;
     gap: 10px;
     width: 100vw;
-    height: 100vh;
     margin: 0;
     padding: 10px;
 }
 
 body > * {
-    border: 4px solid white;
     width: 100%;
     height: 100%;
     position: relative;
 }
 
 canvas {
-    padding: 4px;
     width: 100%;
     height: 100%;
+    border: 8px solid rgb(180, 180, 180);
+    border-top-color: rgb(64, 64, 64);
+    border-left-color: rgb(64, 64, 64);
 }
 
 canvas#cam {
@@ -41,5 +43,31 @@ div#message-box {
     padding: 20px;
     color: rgb(250, 230, 180);
     background-color: rgba(0, 0, 0, 0.8);
-    font-size: 3rem;
+}
+
+div#inventory {
+    display: grid;
+    grid-template-rows: 50% 50%;
+    grid-template-columns: 50% 50%;
+    justify-items: stretch;
+    align-items: stretch;
+}
+
+span.item {
+    color: white;
+    border: 8px solid rgb(180, 180, 180);
+    border-top-color: rgb(64, 64, 64);
+    border-left-color: rgb(64, 64, 64);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+span.item.active {
+    border-color: rgb(240, 220, 190);
+    border-top-color: rgb(120, 110, 80);
+    border-left-color: rgb(120, 110, 80);
+    background-color: rgb(70, 50, 20);
+    font-weight: bold;
 }

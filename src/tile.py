@@ -13,10 +13,15 @@ class Tile(object):
         self, my_x: int, my_y: int, p: player.Player
     ) -> tuple[bool, str | None]:
         if not self.passable:
-            return False, "You can't walk through that!"
+            return False, f"You can't walk through that {self.__class__.__name__}!"
 
         p.x, p.y = my_x, my_y
         return True, None
+
+    def on_use_with(
+        self, my_x: int, my_y: int, p: player.Player, item: str
+    ) -> tuple[bool, str | None]:
+        return False, f"You can't use the {item} on the {self.__class__.__name__}!"
 
 # tile definitions:
 
@@ -27,6 +32,11 @@ class Floor(Tile):
 
     def img_src(self) -> str:
         return "/static/img/tiles/floor.png"
+
+    def on_use_with(
+        self, my_x: int, my_y: int, p: player.Player, item: str
+    ) -> tuple[bool, str | None]:
+        return True, None
 
 class Wall(Tile):
     def img_src(self) -> str:

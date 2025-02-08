@@ -16,6 +16,10 @@ function startGame() {
     gameContext = gameCanvas.getContext("2d")!
 
     gameCanvas.addEventListener("click", handleGameClick)
+    document.querySelectorAll("span.item")
+        .forEach(item => {
+            (item as HTMLElement).addEventListener("click", handleClickItem)
+        })
 
     fetchState()
         .then(preloadImages)
@@ -74,6 +78,13 @@ function showMessage(message: string, timeout: number = 3000) {
     }
 }
 
+function handleClickItem(event: MouseEvent) {
+    const el = event.target as HTMLElement
+    const index = el.getAttribute("data-index")
+
+    sendAction(`/api/select-item/${index}`)
+}
+
 function handleGameClick(event: MouseEvent) {
     const rect = gameCanvas.getBoundingClientRect()
     const x = event.clientX - rect.left
@@ -121,6 +132,8 @@ function render() {
 
     renderMap()
     renderPlayer()
+    renderInventory()
+
     requestAnimationFrame(render)
 }
 
@@ -135,6 +148,27 @@ function renderMap() {
             const tile = state.map.tiles[y][x]
             const img = images.get(tile.img)!
             gameContext.drawImage(img, 0, 0, img.width, img.height, x, y, 1, 1)
+        }
+    }
+}
+
+function renderInventory() {
+    var inv = state.player.items
+    var selected = state.player.selected_item
+
+    var container = document.getElementById("inventory")!
+    var items = Array.from(container.children)
+
+    for (var i = 0; i < items.length; i++){
+        var itemEl = items[i] as HTMLElement
+
+        if (i < inv.length) {
+            var item = inv[i]
+
+            itemEl.textContent = item
+            itemEl.classList.toggle("active", i == selected)
+        } else {
+            itemEl.textContent = "-"
         }
     }
 }

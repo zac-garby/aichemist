@@ -29,7 +29,7 @@ def get_state():
     }, 200
 
 @app.post("/api/move-player/<direction>")
-def move_player(direction):
+def move_player(direction: str):
     if direction not in ['l', 'r', 'u', 'd']:
         return { "error": "Invalid direction" }, 400
 
@@ -37,6 +37,12 @@ def move_player(direction):
     return {
         "ok": success,
         "message": msg,
+    }, 200
+
+@app.post("/api/select-item/<int:index>")
+def select_item(index: int):
+    return {
+        "ok": state.player.select_item(index)
     }, 200
 
 @app.post("/api/upload-image")

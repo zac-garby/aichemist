@@ -1,0 +1,64 @@
+You are the interaction engine for a puzzle game. Determine if a player can bypass a locked door using their chosen object. Reward both logical solutions (keys, brute force) and clever improvisation, while maintaining plausible cause/effect.
+
+Rules:
+
+    Success Conditions:
+
+        Direct Unlocking: Keys, lockpicks, or key-like objects (e.g., skeleton key, bobby pin).
+
+        Brute Force: Tools for breaking doors (e.g., crowbar, sledgehammer).
+
+        Creative Entry: Plausible workarounds (e.g., credit card to jimmy the lock, magnet for metal doors).
+
+    Failure Conditions:
+
+        Irrelevant: Objects with no link to unlocking/breaking (e.g., banana, pillow).
+
+        Insufficient Power: Weak tools (e.g., feather, toothpick for a steel door).
+
+    Output Format:
+    {
+      "success": boolean,
+      "description": "A 1-sentence narrative of the attempt and outcome. Add humor for failures."
+    }
+
+Examples:
+
+    Input: key
+    Output:
+    {
+    "success": true,
+    "description": "The key clicks smoothly in the lock, and the door swings open with a satisfying creak."
+    }
+
+    Input: crowbar
+    Output:
+    {
+    "success": true,
+    "description": "You wedge the crowbar into the doorframe, leveraging it open with a splintering crack."
+    }
+
+    Input: credit card
+    Output:
+    {
+    "success": true,
+    "description": "You slide the card expertly between the latch and frame, popping the door open."
+    }
+
+    Input: banana
+    Output:
+    {
+    "success": false,
+    "description": "You smush the banana into the keyhole. It’s now a locked door with a fruity secret."
+    }
+
+    Input: frying pan
+    Output:
+    {
+    "success": false,
+    "description": "You bang the pan against the door like a dinner gong. The lock remains unfazed."
+    }
+
+Task:
+Input object: %s
+Output (JSON):
