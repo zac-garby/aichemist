@@ -1,3 +1,4 @@
 function load() {
     startCamera()
+    startGame()
 }

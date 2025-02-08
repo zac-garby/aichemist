@@ -1,5 +1,5 @@
-var canvas: HTMLCanvasElement
-var context: CanvasRenderingContext2D
+var cameraCanvas: HTMLCanvasElement
+var cameraContext: CanvasRenderingContext2D
 var video: HTMLVideoElement
 
 function startCamera() {
@@ -9,16 +9,16 @@ function startCamera() {
             video.srcObject = stream
             video.play()
 
-            canvas = document.getElementById('cam') as HTMLCanvasElement
-            context = canvas.getContext('2d') as CanvasRenderingContext2D
+            cameraCanvas = document.getElementById('cam') as HTMLCanvasElement
+            cameraContext = cameraCanvas.getContext('2d')!
 
             const dpr = window.devicePixelRatio || 1.0
-            canvas.width = canvas.clientWidth * dpr
-            canvas.height = canvas.clientHeight * dpr
-            context.scale(dpr, dpr)
+            cameraCanvas.width = cameraCanvas.clientWidth * dpr
+            cameraCanvas.height = cameraCanvas.clientHeight * dpr
+            cameraContext.scale(dpr, dpr)
 
             video.addEventListener("canplay", drawFrame)
-            canvas.addEventListener("click", takePhoto)
+            cameraCanvas.addEventListener("click", takePhoto)
         }).catch(function(error) {
             console.error("An error occurred: ", error)
         })
@@ -27,7 +27,7 @@ function startCamera() {
 
 function drawFrame() {
     const aspectRatio = video.videoWidth / video.videoHeight
-    const targetRatio = canvas.clientWidth / canvas.clientHeight
+    const targetRatio = cameraCanvas.clientWidth / cameraCanvas.clientHeight
 
     let sx = 0
     let sy = 0
@@ -42,11 +42,11 @@ function drawFrame() {
         sy = (video.videoHeight - sh) / 2
     }
 
-    canvas.width = canvas.width
-    context.drawImage(
+    cameraCanvas.width = cameraCanvas.width
+    cameraContext.drawImage(
         video,
         sx, sy, sw, sh, 0, 0,
-        canvas.width, canvas.height
+        cameraCanvas.width, cameraCanvas.height
     )
 
     requestAnimationFrame(drawFrame)
@@ -55,7 +55,7 @@ function drawFrame() {
 function takePhoto() {
     console.log("taking photo")
 
-    const data = canvas.toDataURL("image/png")
+    const data = cameraCanvas.toDataURL("image/png")
     const base64 = data.split(",")[1]
 
     fetch("/api/upload-image", {

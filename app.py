@@ -1,10 +1,16 @@
 from flask import Flask, request, send_from_directory
 from PIL import Image
 from io import BytesIO
+from src.json import Provider
+
+import src.game as game
 
 import base64
 
 app = Flask(__name__, static_folder='static')
+app.json = Provider(app=app)
+
+state = game.State(32, 16)
 
 @app.route('/')
 def index():
@@ -13,6 +19,12 @@ def index():
 @app.route('/static/<path:path>')
 def serve_static(path):
     return send_from_directory('static', path)
+
+@app.get("/api/state")
+def get_state():
+    return {
+        "state": state,
+    }, 200
 
 @app.post("/api/upload-image")
 def upload_image():
