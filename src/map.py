@@ -10,5 +10,5 @@ class Map(object):
         for y in range(height):
             row = []
             for x in range(width):
-                row.append(random.choice([tile.Floor(), tile.Wall()]))
+                row.append(random.choice([tile.Floor(), tile.Floor(), tile.Floor(), tile.Wall()]))
             self.tiles.append(row)

@@ -2,7 +2,10 @@ var state: State
 var gameCanvas: HTMLCanvasElement
 var gameContext: CanvasRenderingContext2D
 var images: Map<string, HTMLImageElement> = new Map()
-var renderScale: number = 64
+
+const renderScale: number = 64
+const sideTapProximity: number = 128
+const sideMoveProximity: number = 1
 
 var cam = { x: 0, y: 0 }
 
@@ -10,8 +13,14 @@ function startGame() {
     gameCanvas = document.getElementById("game") as HTMLCanvasElement
     gameContext = gameCanvas.getContext("2d")!
 
+    gameCanvas.addEventListener("click", handleGameClick)
+
     fetchState()
         .then(preloadImages)
+        .then(_ => {
+            cam.x = state.player.x
+            cam.y = state.player.y
+        })
         .then(render)
 }
 
@@ -24,6 +33,34 @@ async function fetchState(): Promise<State> {
         })
 }
 
+function handleGameClick(event: MouseEvent) {
+    const rect = gameCanvas.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+
+    if (x < sideTapProximity) state.player.x += -1
+    else if (x > rect.width - sideTapProximity) state.player.x += 1
+    else if (y < sideTapProximity) state.player.y += -1
+    else if (y > rect.height - sideTapProximity) state.player.y += 1
+}
+
+function getRealCameraPosition(): { x: number, y: number } {
+    var tilesWide = Math.floor(gameCanvas.clientWidth / renderScale)
+    var tilesHigh = Math.floor(gameCanvas.clientHeight / renderScale)
+    var dx = cam.x - state.player.x
+    var dy = cam.y - state.player.y
+
+    if (dx < sideMoveProximity - 1 - tilesWide / 2) cam.x += 1
+    if (dx > tilesWide / 2 - sideMoveProximity) cam.x -= 1
+    if (dy < sideMoveProximity - 1 - tilesHigh / 2) cam.y += 1
+    if (dy > tilesHigh / 2 - sideMoveProximity) cam.y -= 1
+
+    return {
+        x: Math.floor(tilesWide / 2) - cam.x,
+        y: Math.floor(tilesHigh / 2) - cam.y
+    }
+}
+
 function resetCanvas() {
     const dpr = window.devicePixelRatio || 1.0
     gameCanvas.width = gameCanvas.clientWidth * dpr
@@ -34,7 +71,10 @@ function resetCanvas() {
 
 function render() {
     resetCanvas()
-    gameContext.translate(-cam.x, -cam.y)
+
+    let { x, y } = getRealCameraPosition()
+    gameContext.translate(x, y)
+
     renderMap()
     renderPlayer()
     requestAnimationFrame(render)
