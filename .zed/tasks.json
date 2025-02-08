@@ -1,0 +1,16 @@
+// Static tasks configuration.
+//
+// Example:
+[
+    {
+        "label": "Compile TypeScript",
+        "command": "tsc --watch",
+        "reveal": "no_focus"
+    },
+    {
+        "label": "Run Flask app",
+        "command": "source .venv/bin/activate && flask --app app.py run --host 0.0.0.0 --port 8000 --debug",
+        "reveal": "no_focus",
+        "show_command": true
+    }
+]
