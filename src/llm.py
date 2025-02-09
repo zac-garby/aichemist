@@ -3,14 +3,15 @@ from pydantic.json_schema import JsonSchemaValue
 
 import ollama
 
-llm_model: str = "llava"
-
 def chat(
     messages: list[dict[str, Any]],
     schema: JsonSchemaValue,
+    model: str = "phi4",
 ) -> ollama.ChatResponse:
+    print(messages)
+
     return ollama.chat(
-        model=llm_model,
+        model=model,
         messages=messages,
         options={
             "seed": 42,
@@ -73,6 +74,52 @@ isn't strictly worse, or is just a rewording, just return the original.
 If it already seems very complicated, then just
 return the same object. DO NOT keep adding adjectives for the sake of it.
 It's better to give a new noun than to add "worsening" adjectives to the old one.
+"""
+
+combine_machine_prompt = """
+You are the logic core of a "Combiner Machine" in a puzzle game. Players insert two objects, and you output a single, physical item that merges their literal properties, symbolic associations, or contextual utility to solve challenges.
+
+Rules:
+Combination Logic. The combination may use one or more of the following combination types.
+    Literal Fusion: Merge physical traits (e.g., spoon + fork becomes a spork).
+    Symbolic Merge: Use metaphorical meaning (e.g., credit card (wealth) + shoe becomes a designer shoe).
+    Functional Synergy: Create tools for specific puzzles (e.g., mirror + stick becomes a periscope).
+
+Output MUST be:
+    A single, holdable object, which a player can equip or hold in a pack.
+    The object generated should be a real, or at least a feasibly real, object.
+    Grounded in the game’s reality (e.g., shoe + jet engine → rocket boot is allowed).
+    In JSON format with one string field, "new_object".
+
+It is important that the object you come up with makes sense. For instance,
+combining "keys" and "glue" should NOT give "key glue". The output object should
+be a real thing which the player will understand and recognise. Do NOT merely
+combine the two words, unless that is expected. The output MUST BE A REAL LIFE
+OBJECT THAT A NORMAL PERSON KNOWS WHAT IT IS.
+
+Prioritize objects that may solve common puzzle archetypes (unlocking, bridging gaps, manipulating physics).
+If no valid or sensible combination exists, return the first input object.
+"""
+
+rhyme_machine_prompt = """
+You are the logic core of a "Rhyme Machine" in a puzzle game. Players insert real-world objects, and you output a different, physical object whose name exactly rhymes with the input (e.g., "bat" → "cat").
+
+Rules:
+
+Rhyme Definition:
+    Exact End Rhyme: The last syllable(s) must match. It MUST be a PERFECt rhyme.
+
+Output MUST be:
+    A single, physical object (no abstract concepts, verbs, or adjectives).
+    A different item (e.g., "shoe" to "canoe").
+    In JSON format with one string field, "new_object".
+
+Prioritize Common Objects:
+    Use familiar, tangible items (e.g., "clock" to "lock", not archaic terms like "sock" to "yachtleck").
+    The output object MUST be something which an average person would recognise,
+    and could feasibly be carried or worn. The object MUST be a physical object.
+
+If no valid rhyme exists, just return the original object.
 """
 
 sad_guy_prompt = """
@@ -185,7 +232,10 @@ not depend on previous items tried.
 """
 
 snake_pit_prompt = """
- You are the interaction engine for a puzzle game. Evaluate whether a player can cross a wide pit with snakes below using their chosen object. Prioritize plausible traversal methods over snake deterrents.
+ You are the interaction engine for a puzzle game. Evaluate whether a player can
+ cross a pit with snakes below using their chosen object. The pit is approximately
+ 1 meter in length, which the player would have to clear. It is deep, and not
+ easily traversible. Prioritize plausible traversal methods over snake deterrents.
 
  Rules:
 

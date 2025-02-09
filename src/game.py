@@ -5,11 +5,13 @@ class State(object):
     def __init__(self, map_width: int, map_height: int):
         super().__init__()
         self.map = map.Map(map.level_layout)
-        self.player = player.Player(7, 8)
+        # self.player = player.Player(7, 8)
+        self.player = player.Player(13, 8)
 
     def move_player(self, direction: str) -> tuple[bool, str | None]:
         new_x, new_y = self.player.x, self.player.y
 
+        self.player.direction = direction
         if direction == "l":
             new_x -= 1
         elif direction == "r":

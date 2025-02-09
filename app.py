@@ -68,7 +68,7 @@ def upload_image():
             "content": llm.photo_prompt,
             "images": [ "./static/img/image.png" ]
         }
-    ], schema=llm.photo_schema)
+    ], schema=llm.photo_schema, model="llava")
 
     print("all done")
 

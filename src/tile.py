@@ -76,12 +76,10 @@ class Machine(Tile):
             "required": "new_object"
         }
 
-        self.prime_msgs = [{ "role": "system", "content": system_prompt }]
+        self.prompt = system_prompt + "\n\nSome examples:\n\n"
         for i, o in examples:
-            self.prime_msgs.append({ "role": "user", "content": i })
-            self.prime_msgs.append({
-                "role": "assistant", "content": f'{{"new_object": "{o}"}}'
-            })
+            self.prompt += f"The object '{i}' gives {{'new_object': {o}}}\n"
+        self.prompt += "\nWhat would you OUTPUT for the player's object: "
 
         super().__init__()
 
@@ -98,9 +96,12 @@ class Machine(Tile):
         return True, f"Ding! Your {item} becomes a shiny new {output}"
 
     def run_machine(self, object: str) -> str:
-        new_msgs = self.prime_msgs + [{
-            "role": "user", "content": object
-        }]
+        new_msgs = [
+            {
+                "role": "system",
+                "content": self.prompt + object
+            }
+        ]
 
         resp = llm.chat(
             messages=new_msgs,
@@ -133,15 +134,10 @@ class Obstacle(Tile):
             "required": ["success", "description"]
         }
 
-        self.prime_msgs = [{ "role": "system", "content": system_prompt }]
+        self.prompt = system_prompt + "\n\nSome examples:\n\n"
         for i, succ, desc in examples:
-            self.prime_msgs.append({ "role": "user", "content": i })
-            self.prime_msgs.append({
-                "role": "assistant",
-                "content": json.dumps({
-                    "success": succ, "description": desc,
-                })
-            })
+            self.prompt += f"The object '{i}' gives {{'success': {succ}, 'description': '{desc}'}}\n"
+        self.prompt += "\nWhat would you OUTPUT for the player's object: "
 
         super().__init__()
 
@@ -156,7 +152,7 @@ class Obstacle(Tile):
         self, my_x: int, my_y: int, p: player.Player, item: str
     ) -> tuple[bool, str | None]:
         if not self.cleared:
-            succ, desc = self.run_machine(item)
+            succ, desc = self.run_obstacle(item)
             if succ:
                 self.on_clear(my_x, my_y, p)
 
@@ -164,18 +160,11 @@ class Obstacle(Tile):
 
         return super().on_use_empty(my_x, my_y, p)
 
-    def run_machine(self, object: str) -> tuple[bool, str]:
-        new_msgs = self.prime_msgs + [
+    def run_obstacle(self, object: str) -> tuple[bool, str]:
+        new_msgs = [
             {
                 "role": "system",
-                "content": "The previous examples were independent. Now, this\
-                obstacle has its memory erased, and the following object is\
-                the actual one which the player is trying. Do not mention any\
-                of the previous examples again, they are just examples to explain\
-                to you what to do. The player is different now."
-            },
-            {
-                "role": "user", "content": object
+                "content": self.prompt + object
             }
         ]
 
@@ -221,6 +210,57 @@ class DowngradeMachine(Machine):
     def img_src(self) -> str:
         return "/static/img/tiles/downgrade.png"
 
+class CombineMachine(Machine):
+    def __init__(self):
+        self.held_item = None
+
+        super().__init__(llm.combine_machine_prompt, [
+            ("shoe + credit card", "designer shoe"),
+            ("book + apple", "first aid manual"),
+            ("bottle + hat", "scuba helmet"),
+            ("mirror + hammer", "broken mirror"),
+        ], "Ah. Some kind of... combination machine? It looks like it will merge the properties of two objects of mine.")
+
+    def img_src(self) -> str:
+        return "/static/img/tiles/combine.png"
+
+    def on_use_empty(
+        self, my_x: int, my_y: int, p: player.Player
+    ) -> tuple[bool, str | None]:
+        if self.held_item is not None:
+            return False, f"The machine holds your {self.held_item}. Maybe try adding something else...?"
+
+        return super().on_use_empty(my_x, my_y, p)
+
+    def on_use_with(
+        self, my_x: int, my_y: int, p: player.Player, item: str
+    ) -> tuple[bool, str | None]:
+        if self.held_item is None:
+            self.held_item = item
+            p.drop_item(item)
+            return True, f"You deposited your {item} into the box. Now what?"
+        else:
+            output = self.run_machine(f"{self.held_item} + {item}")
+            p.replace_item(output)
+            self.held_item = None
+            return True, f"Ding! Your {item} combined with {self.held_item}, emerging as a {output}"
+
+class RhymeMachine(Machine):
+    def __init__(self):
+        super().__init__(llm.rhyme_machine_prompt, [
+            ("bat", "cat"),
+            ("shoe", "canoe"),
+            ("bottle", "throttle"),
+            ("phone", "bone"),
+            ("key", "tree"),
+        ], "Insert a thing, hear a chime,\
+        Out pops a match with perfect rhyme!\
+        A hat turns cat, a clock to lock,\
+        But if none exist, it stays in stock!")
+
+    def img_src(self) -> str:
+        return "/static/img/tiles/rhyme.png"
+
 class SadGuyObstacle(Obstacle):
     def __init__(self):
         super().__init__(llm.sad_guy_prompt, [
@@ -265,7 +305,7 @@ class IceWallObstacle(Obstacle):
 
     def img_src(self) -> str:
         if self.cleared:
-            return "/static/img/tiles/floor_1.png"
+            return "/static/img/tiles/floor_default.png"
         else:
             return "/static/img/tiles/icewall.png"
 

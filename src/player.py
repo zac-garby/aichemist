@@ -1,14 +1,15 @@
 class Player(object):
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int, direction: str = "d"):
         self.x = x
         self.y = y
+        self.direction = direction
         self.items: list[str] = [
-            "peanut",
+            "foam hammer"
         ]
         self.selected_item: int | None = None
 
     def img_src(self) -> str:
-        return "/static/img/player.png"
+        return f"/static/img/tiles/player_{self.direction}.png"
 
     def select_item(self, index: int) -> bool:
         if index >= len(self.items) or index == self.selected_item:
