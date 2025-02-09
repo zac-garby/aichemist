@@ -3,8 +3,8 @@ class Player(object):
         self.x = x
         self.y = y
         self.items: list[str] = [
-            "Watermelon",
-            "Water Balloon"
+            "peanut",
+            "balloon"
         ]
         self.selected_item: int | None = None
 
@@ -18,3 +18,16 @@ class Player(object):
             self.selected_item = index
 
         return True
+
+    def replace_item(self, item: str):
+        if self.selected_item is not None:
+            self.items[self.selected_item] = item
+        else:
+            self.pickup_item(item)
+
+    def pickup_item(self, item: str) -> bool:
+        if len(self.items) < 4:
+            self.items.append(item)
+            return True
+        else:
+            return False

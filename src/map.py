@@ -11,5 +11,10 @@ class Map(object):
         for y in range(height):
             row = []
             for x in range(width):
-                row.append(random.choice([tile.Floor(), tile.Floor(), tile.Floor(), tile.Wall()]))
+                if x == 0 or y == 0 or x+1 == width or y+1 == height:
+                    row.append(tile.Wall())
+                else:
+                    row.append(tile.Floor())
             self.tiles.append(row)
+
+        self.tiles[4][2] = tile.UpgradeMachine()

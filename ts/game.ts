@@ -3,7 +3,7 @@ var gameCanvas: HTMLCanvasElement
 var gameContext: CanvasRenderingContext2D
 var images: Map<string, HTMLImageElement> = new Map()
 
-const renderScale: number = 64
+const renderScale: number = 48
 const sideTapProximity: number = 128
 const sideMoveProximity: number = 1
 
@@ -105,9 +105,9 @@ function getRealCameraPosition(): { x: number, y: number } {
     var dx = cam.x - state.player.x
     var dy = cam.y - state.player.y
 
-    if (dx < sideMoveProximity - 1 - tilesWide / 2) cam.x += 1
+    if (dx < sideMoveProximity - tilesWide / 2) cam.x += 1
     if (dx > tilesWide / 2 - sideMoveProximity) cam.x -= 1
-    if (dy < sideMoveProximity - 1 - tilesHigh / 2) cam.y += 1
+    if (dy < sideMoveProximity - tilesHigh / 2) cam.y += 1
     if (dy > tilesHigh / 2 - sideMoveProximity) cam.y -= 1
 
     return {
