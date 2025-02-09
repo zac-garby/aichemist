@@ -3,6 +3,8 @@ import src.player as player
 
 import json
 
+llm_model: str = "llava"
+
 class Tile(object):
     def __init__(self):
         self.passable = False
@@ -27,12 +29,13 @@ class Tile(object):
 # tile definitions:
 
 class Floor(Tile):
-    def __init__(self):
+    def __init__(self, style: str = "default"):
         super().__init__()
         self.passable = True
+        self.style = style
 
     def img_src(self) -> str:
-        return "/static/img/tiles/floor.png"
+        return f"/static/img/tiles/floor_{self.style}.png"
 
     def on_use_with(
         self, my_x: int, my_y: int, p: player.Player, item: str
@@ -40,9 +43,22 @@ class Floor(Tile):
         self.on_use_empty(my_x, my_y, p)
         return True, None
 
+class Border(Tile):
+    def __init__(self, style: str = "default"):
+        super().__init__()
+        self.passable = False
+        self.style = style
+
+    def img_src(self) -> str:
+        return f"/static/img/tiles/{self.style}.png"
+
 class Wall(Tile):
     def img_src(self) -> str:
-        return "/static/img/tiles/wall.png"
+        return "/static/img/tiles/bricks.png"
+
+class Void(Tile):
+    def img_src(self) -> str:
+        return "/static/img/tiles/void.png"
 
 class Machine(Tile):
     def __init__(
@@ -89,10 +105,11 @@ class Machine(Tile):
         }]
 
         resp = ollama.chat(
-            model="phi4",
+            model=llm_model,
             messages=new_msgs,
             format=self.schema,
-            options={ "seed": 42 }
+            options={ "seed": 42 },
+            keep_alive="20m"
         )
 
         if (content := resp.message.content) is not None:
@@ -158,10 +175,11 @@ class Obstacle(Tile):
         }]
 
         resp = ollama.chat(
-            model="phi4",
+            model=llm_model,
             messages=new_msgs,
             format=self.schema,
-            options={ "seed": 42 }
+            options={ "seed": 42 },
+            keep_alive="20m"
         )
 
         if (content := resp.message.content) is not None:
@@ -209,7 +227,7 @@ class UpgradeMachine(Machine):
         ], "Hey, it looks like this machine can upgrade my items into shiny new ones!")
 
     def img_src(self) -> str:
-        return "/static/img/sprite tiles/upgrade.png"
+        return "/static/img/tiles/upgrade.png"
 
 class DowngradeMachine(Machine):
     def __init__(self):
@@ -244,7 +262,7 @@ class DowngradeMachine(Machine):
             ], "Hm. I think this machine will make my items worse?")
 
     def img_src(self) -> str:
-        return "/static/img/sprite tiles/downgrade.png"
+        return "/static/img/tiles/downgrade.png"
 
 class SadGuyObstacle(Obstacle):
     def __init__(self):
@@ -279,9 +297,9 @@ class SadGuyObstacle(Obstacle):
 
     def img_src(self) -> str:
         if self.cleared:
-            return "/static/img/tiles/floor.png"
+            return "/static/img/tiles/floor_1.png"
         else:
-            return "/static/img/sprite tiles/sadguy.png"
+            return "/static/img/tiles/sadguy.png"
 
 class IceWallObstacle(Obstacle):
     def __init__(self):
@@ -316,9 +334,9 @@ class IceWallObstacle(Obstacle):
 
     def img_src(self) -> str:
         if self.cleared:
-            return "/static/img/tiles/floor.png"
+            return "/static/img/tiles/floor_1.png"
         else:
-            return "/static/img/sprite tiles/icewall.png"
+            return "/static/img/tiles/icewall.png"
 
 class LockedDoorObstacle(Obstacle):
     def __init__(self):

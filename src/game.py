@@ -4,8 +4,8 @@ import src.map as map
 class State(object):
     def __init__(self, map_width: int, map_height: int):
         super().__init__()
-        self.map = map.Map(map_width, map_height)
-        self.player = player.Player(int(map_width / 2), int(map_height / 2))
+        self.map = map.Map(map.level_layout)
+        self.player = player.Player(7, 6)
 
     def move_player(self, direction: str) -> tuple[bool, str | None]:
         new_x, new_y = self.player.x, self.player.y

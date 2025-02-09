@@ -3,9 +3,9 @@ var gameCanvas: HTMLCanvasElement
 var gameContext: CanvasRenderingContext2D
 var images: Map<string, HTMLImageElement> = new Map()
 
-const renderScale: number = 48
+const renderScale: number = 32
 const sideTapProximity: number = 128
-const sideMoveProximity: number = 1
+const sideMoveProximity: number = 2
 
 var messageTimeoutID: number | undefined = undefined
 var moveWaitTimeoutID: number | undefined = undefined
