@@ -49,7 +49,7 @@ class Map:
         "/": tile.LockedDoorObstacle,
         ";": tile.SadGuyObstacle,
         ":": tile.GreenGuyObstacle,
-        "B": tile.Floor, #tile.Bin,
+        "B": tile.Bin,
         "+": tile.UpgradeMachine,
         "-": tile.DowngradeMachine,
         "R": tile.Floor, #tile.RhymeMachine,

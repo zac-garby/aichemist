@@ -30,3 +30,11 @@ class Player(object):
             return True
         else:
             return False
+
+    def drop_item(self, item: str):
+        for i in range(len(self.items)):
+            if self.items[i] == item:
+                self.items.pop(i)
+                break
+
+        self.selected_item = None

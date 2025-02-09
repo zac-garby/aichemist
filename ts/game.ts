@@ -183,12 +183,12 @@ function renderInventory() {
 
     for (var i = 0; i < items.length; i++){
         var itemEl = items[i] as HTMLElement
+        itemEl.classList.toggle("active", i == selected)
 
         if (i < inv.length) {
             var item = inv[i]
 
             itemEl.textContent = item
-            itemEl.classList.toggle("active", i == selected)
         } else {
             itemEl.textContent = "-"
         }

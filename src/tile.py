@@ -307,3 +307,13 @@ class SnakePitObstacle(Obstacle):
         dx, dy = my_x - p.x, my_y - p.y
         p.x = my_x + dx
         p.y = my_y + dy
+
+class Bin(Tile):
+    def img_src(self) -> str:
+        return "/static/img/tiles/bin.png"
+
+    def on_use_with(
+        self, my_x: int, my_y: int, p: player.Player, item: str
+    ) -> tuple[bool, str | None]:
+        p.drop_item(item)
+        return True, f"You dropped the {item}..."
