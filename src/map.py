@@ -48,7 +48,7 @@ class Map:
         "I": tile.IceWallObstacle,
         "/": tile.LockedDoorObstacle,
         ";": tile.SadGuyObstacle,
-        ":": tile.Floor, #tile.Green,
+        ":": tile.GreenGuyObstacle,
         "B": tile.Floor, #tile.Bin,
         "+": tile.UpgradeMachine,
         "-": tile.DowngradeMachine,

@@ -102,14 +102,18 @@ function handleGameClick(event: MouseEvent) {
     }
 }
 
-function move(direction: string) {
+function setWaitMessage(message: string) {
     if (moveWaitTimeoutID !== undefined) {
         clearTimeout(moveWaitTimeoutID)
         moveWaitTimeoutID = undefined
     }
 
     moveWaitTimeoutID = setTimeout(() =>
-        showMessage("Processing . . .", 10000), 250)
+        showMessage(message, 10000), 250)
+}
+
+function move(direction: string) {
+    setWaitMessage("Processing...")
 
     sendAction(`/api/move-player/${direction}`)
         .finally(() => clearTimeout(moveWaitTimeoutID))

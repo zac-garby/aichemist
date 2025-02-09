@@ -4,9 +4,6 @@ class Player(object):
         self.y = y
         self.items: list[str] = [
             "peanut",
-            "balloon",
-            "rusty keys",
-            "chocolate box"
         ]
         self.selected_item: int | None = None
 

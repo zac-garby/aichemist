@@ -2,3 +2,4 @@ static/js
 static/img/*.png
 __pycache__
 .venv
+*.pem

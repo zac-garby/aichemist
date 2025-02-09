@@ -1,9 +1,7 @@
-import ollama
 import src.player as player
+import src.llm as llm
 
 import json
-
-llm_model: str = "llava"
 
 class Tile(object):
     def __init__(self):
@@ -104,12 +102,9 @@ class Machine(Tile):
             "role": "user", "content": object
         }]
 
-        resp = ollama.chat(
-            model=llm_model,
+        resp = llm.chat(
             messages=new_msgs,
-            format=self.schema,
-            options={ "seed": 42 },
-            keep_alive="20m"
+            schema=self.schema
         )
 
         if (content := resp.message.content) is not None:
@@ -184,12 +179,9 @@ class Obstacle(Tile):
             }
         ]
 
-        resp = ollama.chat(
-            model=llm_model,
+        resp = llm.chat(
             messages=new_msgs,
-            format=self.schema,
-            options={ "seed": 42 },
-            keep_alive="20m"
+            schema=self.schema
         )
 
         if (content := resp.message.content) is not None:
@@ -205,30 +197,7 @@ class Obstacle(Tile):
 
 class UpgradeMachine(Machine):
     def __init__(self):
-        super().__init__("""
-        You are the logic core of an "Upgrade Machine" in a puzzle game. Players
-        insert real-world objects, and you output an improved version of the item
-        that is more effective, advanced, or specialized for solving challenges.
-
-        Rules:
-        Upgrade Definition:
-            Functional: A more powerful tool (e.g., candle → flashlight, stick → spear).
-            Material: A sturdier/durable version (e.g., wooden ladder → aluminum ladder, rope → steel cable).
-            Technological: A modernized or advanced equivalent (e.g., compass → GPS, notebook → tablet).
-
-        Output MUST be:
-            A single, physical object (no abstract concepts, adjectives, or states like "stronger" or "electric").
-            A direct upgrade (e.g., "penny" might go to "dime" [value], "mug" might go to "thermos" [utility]).
-            No more than three words long, and only words. No symbols. If three words,
-            make them short.
-            In JSON format with one string field, "new_object".
-
-        If no logical upgrade exists, return the original object. If the new object
-        isn't strictly better, or is just a rewording, just return the original.
-        If it already seems very complicated, then just
-        return the same object. DO NOT keep adding adjectives for the sake of it.
-        It's better to give a new noun than to add "good" adjectives to the old one.
-        """, [
+        super().__init__(llm.upgrade_machine_prompt, [
             ("butter knife", "machete"),
             ("rock", "slingshot"),
             ("bucket", "waterproof backpack"),
@@ -241,29 +210,7 @@ class UpgradeMachine(Machine):
 
 class DowngradeMachine(Machine):
     def __init__(self):
-        super().__init__("""
-            You are the logic core of a "Downgrade Machine" in a puzzle game. Players insert real-world objects, and you output a worse, primitive, or broken version of the item to solve challenges in unintended ways.
-
-            Rules:
-            Downgrade Definition:
-                Functional: A less effective tool (e.g., flashlight → candle, sword → stick).
-                Material: A weaker/fragile version (e.g., glass cup → clay cup, steel hammer → wooden mallet).
-                Technological: An older or obsolete equivalent (e.g., smartphone → rotary phone, GPS → compass).
-                Broken/Flawed: A damaged or incomplete version (e.g., bucket → bucket with holes, motorcycle → bicycle).
-
-            Output MUST be:
-                A single, physical object (no abstract concepts, adjectives, or states like "stronger" or "electric").
-                A direct downgrade (e.g., thermos to mug, or machete to butter knife).
-                No more than three words long, and only words. No symbols. If three words,
-                make them short.
-                In JSON format with one string field, "new_object".
-
-            If no logical downgrade exists, return the original object. If the new object
-            isn't strictly worse, or is just a rewording, just return the original.
-            If it already seems very complicated, then just
-            return the same object. DO NOT keep adding adjectives for the sake of it.
-            It's better to give a new noun than to add "worsening" adjectives to the old one.
-            """, [
+        super().__init__(llm.downgrade_machine_prompt, [
                 ("chainsaw", "handsaw"),
                 ("jetpack", "parachute"),
                 ("laptop", "typewriter"),
@@ -276,34 +223,7 @@ class DowngradeMachine(Machine):
 
 class SadGuyObstacle(Obstacle):
     def __init__(self):
-        super().__init__("""
-        You are the interaction engine for a puzzle game. Determine if a player
-        can bypass a sad blue character by using their chosen object.
-        Prioritize emotional logic (cheering up) or forceful methods (with
-        consequences), while keeping outcomes grounded in the game’s playful tone.
-
-        Rules:
-
-        Success Conditions include, but are not limited to, any of the following:
-            Comforting: Objects that symbolically/functionally uplift (e.g., teddy bear, joke book).
-            Thoughtful gifts: Objects which might lift his mood or make him feel better.
-            Threatening: Objects that intimidate (e.g., knife, fake spider), but add guilt-inducing flavor.
-            Creative Persuasion: Indirect solutions (e.g., umbrella to shield him from rain, improving his mood).
-
-        Success is determined by whether or not he leaves the area, or if for some other reason he is no longer blocking the way (e.g. he lets you pass; he dies; he runs away; he floats away).
-
-        You MUST output only JSON in the following form:
-
-        {
-            "success": boolean,
-            "description": "A 1-sentence short narrative of the attempt and outcome."
-        }
-
-        If he leaves the area for any reason, the 'success' field should be True, indicating that
-        the player can now move past.
-
-        The following are a number of independent examples. Your choice should
-        not depend on previous items tried.""", [
+        super().__init__(llm.sad_guy_prompt, [
             ("teddy bear", True, "You offer the teddy bear. The little guy hugs it, sniffles, and shuffles aside with a tiny smile."),
             ("knife", True, "You brandish the knife. He flees in tears, leaving a sad puddle where he stood. You feel like a monster."),
             ("book", False, "You read him a chapter on existential philosophy. He sobs louder and curls into a ball."),
@@ -316,23 +236,22 @@ class SadGuyObstacle(Obstacle):
         else:
             return "/static/img/tiles/sadguy.png"
 
-class IceWallObstacle(Obstacle):
+class GreenGuyObstacle(Obstacle):
     def __init__(self):
         super().__init__("""
-        You are the physics/logic engine for a puzzle game. Evaluate whether a
-        player can bypass a massive ice wall using their chosen object. Prioritize
-        fun and creativity over strict realism, but avoid outright absurdity.
+        You encounter a green-skinned guy passionately advocating for the environment. He won’t let you pass unless you show a commitment to nature or sustainability.
 
         Rules:
 
         Success Conditions:
-            Direct Tools: Objects designed for melting, breaking, or moving ice (e.g., blowtorch, pickaxe) always succeed.
-            Creative Solutions: Reward plausible interpretations (e.g., lighter + hairspray → improvised flamethrower).
-            Symbolic Use: Allow metaphorical logic if it aligns with the game’s tone (e.g., hot coffee → melts a small hole to peek through).
+            Eco-Friendly Actions: Offering items that promote outdoor activity or environmental help (e.g., trash bag for cleanup, hiking boots to explore) succeed.
+            Symbolic Gestures: Thoughtful gifts that align with his passion (e.g., planting a flower, giving a nature book) may succeed.
+            Bribes with a Purpose: Items that encourage him to step aside while still benefiting nature (e.g., reusable water bottle, fresh fruit) may succeed.
 
         Failure Conditions:
-            Nonsensical: Objects with no logical/symbolic connection (e.g., book, pillow).
-            Insufficient: Objects too weak for the scale (e.g., teaspoon to chip away a glacier).
+            Wasteful or Harmful Items: Polluting objects (e.g., plastic straw, aerosol can) fail.
+            Indifference: Items that ignore his mission (e.g., video game console, a couch) fail.
+            Absurdity: Anything unrealistic or unrelated to nature (e.g., a rubber chicken) fails.
 
         You MUST output only JSON in the following form:
 
@@ -340,10 +259,25 @@ class IceWallObstacle(Obstacle):
             "success": boolean,
             "description": "A 1-sentence narrative of the attempt and outcome."
         }
-
-        The following are a number of independent examples. Your choice should
-        not depend on previous items tried.
         """, [
+            ("trash bag", True, "You hand him a trash bag and promise to help clean up. He beams and waves you forward."),
+            ("hiking boots", True, "You show off your sturdy hiking boots, ready to explore the great outdoors. He nods in approval and lets you pass."),
+            ("plastic straw", False, "You offer a plastic straw. He gasps in horror and lectures you for an hour on ocean pollution."),
+            ("flower seeds", True, "You present a packet of flower seeds. He claps excitedly and steps aside, eager to see them bloom."),
+            ("video game console", False, "You try to impress him with a new console. He frowns and blocks your way, muttering about screen addiction."),
+            ("rubber chicken", False, "You squeeze the rubber chicken. It squawks. He blinks, unimpressed, and remains firmly in place."),
+            ("reusable water bottle", True, "You hand him a reusable water bottle. He nods approvingly and waves you through."),
+        ], "A green-skinned guy stands in your path, passionately urging people to connect with nature. He won’t let you pass unless you prove your commitment to the environment.")
+
+    def img_src(self) -> str:
+        if self.cleared:
+            return "/static/img/tiles/floor_1.png"
+        else:
+            return "/static/img/tiles/greenguy.png"
+
+class IceWallObstacle(Obstacle):
+    def __init__(self):
+        super().__init__(llm.ice_wall_prompt, [
             ("blowtorch", True, "You blast the ice wall with the blowtorch, carving a steamy tunnel through it in minutes."),
             ("pickaxe", True, "You chip away at the ice wall relentlessly, reducing it to a pile of slush."),
             ("book", False, "You read passages about tropical beaches to the ice wall. It remains unimpressed."),
@@ -358,32 +292,7 @@ class IceWallObstacle(Obstacle):
 
 class LockedDoorObstacle(Obstacle):
     def __init__(self):
-        super().__init__("""
-        You are the interaction engine for a puzzle game. Determine if a player
-        can bypass a locked door using their chosen object. Reward both logical
-        solutions (keys, brute force) and clever improvisation, while maintaining
-        plausible cause/effect.
-
-        Rules:
-
-        Success Conditions:
-            Direct Unlocking: Keys, lockpicks, or key-like objects (e.g., skeleton key, bobby pin).
-            Brute Force: Tools for breaking doors (e.g., crowbar, sledgehammer).
-            Creative Entry: Plausible workarounds (e.g., credit card to jimmy the lock, magnet for metal doors).
-
-        Failure Conditions:
-            Irrelevant: Objects with no link to unlocking/breaking (e.g., banana, pillow).
-            Insufficient Power: Weak tools (e.g., feather, toothpick for a steel door).
-            Bizarre or unrealistic: Objects which would have no such power, even if funny/creative (e.g. balloon to lift up a large obstacle)
-
-        {
-            "success": boolean,
-            "description": "A 1-sentence narrative of the attempt and outcome."
-        }
-
-        The following are a number of independent examples. Your choice should
-        not depend on previous items tried.
-        """, [
+        super().__init__(llm.locked_door_prompt, [
             ("key", True, "The key clicks smoothly in the lock, and the door swings open with a satisfying creak."),
             ("crowbar", True, "You wedge the crowbar into the doorframe, leveraging it open with a splintering crack."),
             ("credit card", True, "You slide the card expertly between the latch and frame, popping the door open."),
@@ -401,33 +310,7 @@ class SnakePitObstacle(Obstacle):
     def __init__(self, variant: str = "top"):
         self.variant = variant
 
-        super().__init__("""
-         You are the interaction engine for a puzzle game. Evaluate whether a player can cross a wide pit with snakes below using their chosen object. Prioritize plausible traversal methods over snake deterrents.
-
-         Rules:
-
-         Success Conditions:
-             Traversal: Objects enabling crossing (e.g., plank, rope, grappling hook, springs) always succeed.
-             Propulsion: Tools for jumping/launching (e.g., trampoline, rocket, parachute) may succeed depending on reach and safety.
-             Structural: Building/altering terrain (e.g., shovel to collapse pit edges, glue to stick planks) may succeed if they create a safe crossing.
-             Creative Flight: Whimsical but self-consistent solutions (e.g., helicopter hat) may succeed if game tech allows.
-             Snake Mitigation: Objects addressing snakes only succeed when paired with a traversal method (e.g., torch to scare snakes + plank to cross).
-
-         Failure Conditions:
-             No Traversal: Objects only addressing snakes (e.g., flute to charm snakes) without any way to cross the pit will fail.
-             Insufficient Reach: Objects too short for the gap (e.g., ruler, pencil) fail.
-             Absurdity: Solutions violating game logic (e.g., banana peel as a teleporter) fail.
-
-         You MUST output only JSON in the following form:
-
-         {
-             "success": boolean,
-             "description": "A 1-sentence narrative of the attempt and outcome."
-         }
-
-         The following are a number of independent examples. Your choice should
-         not depend on previous items tried.
-         """, [
+        super().__init__(llm.snake_pit_prompt, [
              ("plank", True, "You balance the plank across the pit, ignoring the hissing snakes below as you sprint to safety."),
              ("flute", False, "You charm the snakes into a dance, but the pit remains uncrossed. At least the snakes are having fun."),
              ("grappling hook", True, "You launch the hook overhead, swing across the pit, and kick off a snake mid-air for style points."),

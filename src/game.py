@@ -32,3 +32,6 @@ class State(object):
             return ok, msg
         else:
             return the_tile.on_use_empty(new_x, new_y, self.player)
+
+    def summon_item(self, item: str) -> bool:
+        return self.player.pickup_item(item.lower())

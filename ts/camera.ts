@@ -4,9 +4,12 @@ var video: HTMLVideoElement
 
 function startCamera() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+        navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
+        }).then(function(stream) {
             video = document.createElement('video')
             video.srcObject = stream
+            video.playsInline = true
             video.play()
 
             cameraCanvas = document.getElementById('cam') as HTMLCanvasElement
@@ -18,7 +21,6 @@ function startCamera() {
             cameraContext.scale(dpr, dpr)
 
             video.addEventListener("canplay", drawFrame)
-            cameraCanvas.addEventListener("click", takePhoto)
         }).catch(function(error) {
             console.error("An error occurred: ", error)
         })
@@ -54,9 +56,11 @@ function drawFrame() {
 
 function takePhoto() {
     console.log("taking photo")
-
     const data = cameraCanvas.toDataURL("image/png")
     const base64 = data.split(",")[1]
+    console.log("photo taken. size:", base64.length)
+
+    setWaitMessage("The Gods Above are pondering your request...")
 
     fetch("/api/upload-image", {
         method: "POST",
@@ -66,5 +70,11 @@ function takePhoto() {
         body: JSON.stringify({
             image: base64,
         })
+    }).then(r => r.json()).then(j => {
+        if (j.message) {
+            showMessage(j.message)
+        }
+    }).then(fetchState).finally(() => {
+        clearTimeout(moveWaitTimeoutID)
     })
 }
