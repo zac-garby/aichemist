@@ -194,6 +194,8 @@ function renderInventory() {
 async function preloadImages(): Promise<Map<string, HTMLImageElement>> {
     var toLoad: Set<string> = new Set([
         "/static/img/player.png",
+        "/static/img/tiles/open_door.png",
+        "/static/img/tiles/closed_door.png",
     ])
 
     state.map.tiles.forEach(row => row.forEach(tile => {

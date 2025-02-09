@@ -10,13 +10,13 @@ ____2#####4_____________73333335____
 ____2#B..#47333333333333a######4____
 ____2#.?.#ba##############!..!#4____
 ____2#...####..........~....+.#4____
-____2#.!./.....!,,,?...~......#4____
+____2#.!./.....!,,,?...§......#4____
 ____2#...####..,,C,,..####!..!#4____
 ____2#####dc#..,,,,,..#dc######4____
 ____81111162#..?,,,!.B#481111116____
 ___________2#.........#4____________
 ___________2######.####4____________
-___7333335_81111c#.#d116____________
+___7333335_81111c#;#d116____________
 ___2#####4___733a#.#b335____________
 ___2#,,,#4___2####.####4____________
 ___2#,?,#b333a#?'''''!#4____________
@@ -43,9 +43,10 @@ class Map:
         "a": tile.Border, "b": tile.Border, "c": tile.Border, "d": tile.Border,
         "1": tile.Border, "2": tile.Border, "3": tile.Border, "4": tile.Border,
         "5": tile.Border, "6": tile.Border, "7": tile.Border, "8": tile.Border,
-        "~": tile.Floor, #tile.Snake,
+        "~": tile.SnakePitObstacle,
+        "§": tile.SnakePitObstacle,
         "I": tile.IceWallObstacle,
-        "/": tile.Floor, #tile.Door,
+        "/": tile.LockedDoorObstacle,
         ";": tile.SadGuyObstacle,
         ":": tile.Floor, #tile.Green,
         "B": tile.Floor, #tile.Bin,
@@ -63,6 +64,7 @@ class Map:
         "a": "n1", "b": "n2", "c": "n3", "d": "n4",
         "5": "c1", "6": "c2", "7": "c3", "8": "c4",
     }
+    SNAKE_TILES = {"~": "top", "§": "bottom"}
 
     def __init__(self, level_layout_str: str):
         level_layout = level_layout_str.split("\n")
@@ -80,5 +82,8 @@ class Map:
 
         if char in self.BORDER_TILES:
             return tile.Border(self.BORDER_TILES[char])
+
+        if char in self.SNAKE_TILES:
+            return tile.SnakePitObstacle(self.SNAKE_TILES[char])
 
         return self.TILE_MAPPING.get(char, tile.Floor)()

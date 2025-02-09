@@ -163,16 +163,26 @@ class Obstacle(Tile):
         if not self.cleared:
             succ, desc = self.run_machine(item)
             if succ:
-                self.on_clear(p)
+                self.on_clear(my_x, my_y, p)
 
             return succ, desc
 
         return super().on_use_empty(my_x, my_y, p)
 
     def run_machine(self, object: str) -> tuple[bool, str]:
-        new_msgs = self.prime_msgs + [{
-            "role": "user", "content": object
-        }]
+        new_msgs = self.prime_msgs + [
+            {
+                "role": "system",
+                "content": "The previous examples were independent. Now, this\
+                obstacle has its memory erased, and the following object is\
+                the actual one which the player is trying. Do not mention any\
+                of the previous examples again, they are just examples to explain\
+                to you what to do. The player is different now."
+            },
+            {
+                "role": "user", "content": object
+            }
+        ]
 
         resp = ollama.chat(
             model=llm_model,
@@ -189,7 +199,7 @@ class Obstacle(Tile):
         print("warning: for some reason, we couldn't get the llm output")
         return (False, "Something went wrong.")
 
-    def on_clear(self, p: player.Player):
+    def on_clear(self, my_x: int, my_y: int, p: player.Player):
         self.cleared = True
         self.passable = True
 
@@ -268,32 +278,37 @@ class SadGuyObstacle(Obstacle):
     def __init__(self):
         super().__init__("""
         You are the interaction engine for a puzzle game. Determine if a player
-        can bypass a sad, unmoving blue character using their chosen object.
+        can bypass a sad blue character by using their chosen object.
         Prioritize emotional logic (cheering up) or forceful methods (with
         consequences), while keeping outcomes grounded in the game’s playful tone.
 
         Rules:
 
-        Success Conditions:
+        Success Conditions include, but are not limited to, any of the following:
             Comforting: Objects that symbolically/functionally uplift (e.g., teddy bear, joke book).
+            Thoughtful gifts: Objects which might lift his mood or make him feel better.
             Threatening: Objects that intimidate (e.g., knife, fake spider), but add guilt-inducing flavor.
             Creative Persuasion: Indirect solutions (e.g., umbrella to shield him from rain, improving his mood).
 
-        Failure Conditions:
-            Irrelevant: Objects with no emotional/contextual link (e.g., rock, toothpick).
-            Backfired Kindness: Good intentions that misfire (e.g., flowers → he’s allergic).
+        Success is determined by whether or not he leaves the area, or if for some other reason he is no longer blocking the way (e.g. he lets you pass; he dies; he runs away; he floats away).
 
         You MUST output only JSON in the following form:
 
         {
             "success": boolean,
-            "description": "A 1-sentence narrative of the attempt and outcome. For threats, add remorseful tone."
-        }""", [
+            "description": "A 1-sentence short narrative of the attempt and outcome."
+        }
+
+        If he leaves the area for any reason, the 'success' field should be True, indicating that
+        the player can now move past.
+
+        The following are a number of independent examples. Your choice should
+        not depend on previous items tried.""", [
             ("teddy bear", True, "You offer the teddy bear. The little guy hugs it, sniffles, and shuffles aside with a tiny smile."),
             ("knife", True, "You brandish the knife. He flees in tears, leaving a sad puddle where he stood. You feel like a monster."),
             ("book", False, "You read him a chapter on existential philosophy. He sobs louder and curls into a ball."),
             ("chocolate bar", True, "You share the chocolate. His mood lifts instantly, and he hums a tune while letting you pass.")
-        ], "There's a sad little guy here. You want to turn a blind eye, but he's blocking the door...")
+        ], "There's a sad little guy here. You want to turn a blind eye, but he's blocking the way...")
 
     def img_src(self) -> str:
         if self.cleared:
@@ -325,6 +340,9 @@ class IceWallObstacle(Obstacle):
             "success": boolean,
             "description": "A 1-sentence narrative of the attempt and outcome."
         }
+
+        The following are a number of independent examples. Your choice should
+        not depend on previous items tried.
         """, [
             ("blowtorch", True, "You blast the ice wall with the blowtorch, carving a steamy tunnel through it in minutes."),
             ("pickaxe", True, "You chip away at the ice wall relentlessly, reducing it to a pile of slush."),
@@ -356,11 +374,15 @@ class LockedDoorObstacle(Obstacle):
         Failure Conditions:
             Irrelevant: Objects with no link to unlocking/breaking (e.g., banana, pillow).
             Insufficient Power: Weak tools (e.g., feather, toothpick for a steel door).
+            Bizarre or unrealistic: Objects which would have no such power, even if funny/creative (e.g. balloon to lift up a large obstacle)
 
         {
             "success": boolean,
             "description": "A 1-sentence narrative of the attempt and outcome."
         }
+
+        The following are a number of independent examples. Your choice should
+        not depend on previous items tried.
         """, [
             ("key", True, "The key clicks smoothly in the lock, and the door swings open with a satisfying creak."),
             ("crowbar", True, "You wedge the crowbar into the doorframe, leveraging it open with a splintering crack."),
@@ -368,3 +390,58 @@ class LockedDoorObstacle(Obstacle):
             ("banana", False, "You smush the banana into the keyhole. It’s now a locked door with a fruity secret."),
             ("frying pan", False, "You bang the pan against the door like a dinner gong. The lock remains unfazed."),
         ], "Devastatingly, this door is locked tight.")
+
+    def img_src(self) -> str:
+        if self.cleared:
+            return "/static/img/tiles/open_door.png"
+        else:
+            return "/static/img/tiles/closed_door.png"
+
+class SnakePitObstacle(Obstacle):
+    def __init__(self, variant: str = "top"):
+        self.variant = variant
+
+        super().__init__("""
+         You are the interaction engine for a puzzle game. Evaluate whether a player can cross a wide pit with snakes below using their chosen object. Prioritize plausible traversal methods over snake deterrents.
+
+         Rules:
+
+         Success Conditions:
+             Traversal: Objects enabling crossing (e.g., plank, rope, grappling hook, springs) always succeed.
+             Propulsion: Tools for jumping/launching (e.g., trampoline, rocket, parachute) may succeed depending on reach and safety.
+             Structural: Building/altering terrain (e.g., shovel to collapse pit edges, glue to stick planks) may succeed if they create a safe crossing.
+             Creative Flight: Whimsical but self-consistent solutions (e.g., helicopter hat) may succeed if game tech allows.
+             Snake Mitigation: Objects addressing snakes only succeed when paired with a traversal method (e.g., torch to scare snakes + plank to cross).
+
+         Failure Conditions:
+             No Traversal: Objects only addressing snakes (e.g., flute to charm snakes) without any way to cross the pit will fail.
+             Insufficient Reach: Objects too short for the gap (e.g., ruler, pencil) fail.
+             Absurdity: Solutions violating game logic (e.g., banana peel as a teleporter) fail.
+
+         You MUST output only JSON in the following form:
+
+         {
+             "success": boolean,
+             "description": "A 1-sentence narrative of the attempt and outcome."
+         }
+
+         The following are a number of independent examples. Your choice should
+         not depend on previous items tried.
+         """, [
+             ("plank", True, "You balance the plank across the pit, ignoring the hissing snakes below as you sprint to safety."),
+             ("flute", False, "You charm the snakes into a dance, but the pit remains uncrossed. At least the snakes are having fun."),
+             ("grappling hook", True, "You launch the hook overhead, swing across the pit, and kick off a snake mid-air for style points."),
+             ("balloon", True, "You inflate the balloon, float gently over the pit, and drop a snack to distract the snakes."),
+             ("torch", False, "You light the torch to scare off the snakes, but the pit is still too wide to cross."),
+             ("rope", True, "You throw the rope across, climb up, and safely cross over the pit, keeping your distance from the snakes."),
+             ("banana peel", False, "You toss the banana peel, expecting it to act as a teleporter, but nothing happens. The snakes remain unimpressed."),
+         ], "A wide pit filled with hissing snakes, but surely there’s a way across!")
+
+
+    def img_src(self) -> str:
+        return f"/static/img/tiles/snakes_{self.variant}.png"
+
+    def on_clear(self, my_x: int, my_y: int, p: player.Player):
+        dx, dy = my_x - p.x, my_y - p.y
+        p.x = my_x + dx
+        p.y = my_y + dy

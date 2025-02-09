@@ -5,7 +5,7 @@
 
 html {
     background-color: black;
-    font-size: 18pt;
+    font-size: 15pt;
 }
 
 body {
@@ -40,7 +40,7 @@ canvas#cam {
 div#message-box {
     margin: 20px;
     padding: 20px;
-    color: rgb(250, 230, 180);
+    color: rgb(255, 245, 200);
     background-color: rgba(0, 0, 0, 0.8);
 }
 
