@@ -2,6 +2,8 @@ var cameraCanvas: HTMLCanvasElement
 var cameraContext: CanvasRenderingContext2D
 var video: HTMLVideoElement
 
+var paused: boolean = false
+
 function startCamera() {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({
@@ -28,28 +30,30 @@ function startCamera() {
 }
 
 function drawFrame() {
-    const aspectRatio = video.videoWidth / video.videoHeight
-    const targetRatio = cameraCanvas.clientWidth / cameraCanvas.clientHeight
+    if (!paused) {
+        const aspectRatio = video.videoWidth / video.videoHeight
+        const targetRatio = cameraCanvas.clientWidth / cameraCanvas.clientHeight
 
-    let sx = 0
-    let sy = 0
-    let sw = video.videoWidth
-    let sh = video.videoHeight
+        let sx = 0
+        let sy = 0
+        let sw = video.videoWidth
+        let sh = video.videoHeight
 
-    if (aspectRatio > targetRatio) {
-        sw = video.videoHeight * targetRatio
-        sx = (video.videoWidth - sw) / 2
-    } else if (aspectRatio < targetRatio) {
-        sh = video.videoWidth / targetRatio
-        sy = (video.videoHeight - sh) / 2
+        if (aspectRatio > targetRatio) {
+            sw = video.videoHeight * targetRatio
+            sx = (video.videoWidth - sw) / 2
+        } else if (aspectRatio < targetRatio) {
+            sh = video.videoWidth / targetRatio
+            sy = (video.videoHeight - sh) / 2
+        }
+
+        cameraCanvas.width = cameraCanvas.width
+        cameraContext.drawImage(
+            video,
+            sx, sy, sw, sh, 0, 0,
+            cameraCanvas.width, cameraCanvas.height
+        )
     }
-
-    cameraCanvas.width = cameraCanvas.width
-    cameraContext.drawImage(
-        video,
-        sx, sy, sw, sh, 0, 0,
-        cameraCanvas.width, cameraCanvas.height
-    )
 
     requestAnimationFrame(drawFrame)
 }
@@ -60,7 +64,8 @@ function takePhoto() {
     const base64 = data.split(",")[1]
     console.log("photo taken. size:", base64.length)
 
-    setWaitMessage("The Gods Above are pondering your request...")
+    setWaitMessage("The Gods Above are pondering your request...", 100000)
+    paused = true
 
     fetch("/api/upload-image", {
         method: "POST",
@@ -76,5 +81,6 @@ function takePhoto() {
         }
     }).then(fetchState).finally(() => {
         clearTimeout(moveWaitTimeoutID)
+        paused = false
     })
 }

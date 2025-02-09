@@ -102,14 +102,14 @@ function handleGameClick(event: MouseEvent) {
     }
 }
 
-function setWaitMessage(message: string) {
+function setWaitMessage(message: string, timeout: number = 10000) {
     if (moveWaitTimeoutID !== undefined) {
         clearTimeout(moveWaitTimeoutID)
         moveWaitTimeoutID = undefined
     }
 
     moveWaitTimeoutID = setTimeout(() =>
-        showMessage(message, 10000), 250)
+        showMessage(message, timeout), 250)
 }
 
 function move(direction: string) {

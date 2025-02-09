@@ -232,34 +232,13 @@ class SadGuyObstacle(Obstacle):
 
     def img_src(self) -> str:
         if self.cleared:
-            return "/static/img/tiles/floor_1.png"
+            return "/static/img/tiles/floor_lambda.png"
         else:
             return "/static/img/tiles/sadguy.png"
 
 class GreenGuyObstacle(Obstacle):
     def __init__(self):
-        super().__init__("""
-        You encounter a green-skinned guy passionately advocating for the environment. He won’t let you pass unless you show a commitment to nature or sustainability.
-
-        Rules:
-
-        Success Conditions:
-            Eco-Friendly Actions: Offering items that promote outdoor activity or environmental help (e.g., trash bag for cleanup, hiking boots to explore) succeed.
-            Symbolic Gestures: Thoughtful gifts that align with his passion (e.g., planting a flower, giving a nature book) may succeed.
-            Bribes with a Purpose: Items that encourage him to step aside while still benefiting nature (e.g., reusable water bottle, fresh fruit) may succeed.
-
-        Failure Conditions:
-            Wasteful or Harmful Items: Polluting objects (e.g., plastic straw, aerosol can) fail.
-            Indifference: Items that ignore his mission (e.g., video game console, a couch) fail.
-            Absurdity: Anything unrealistic or unrelated to nature (e.g., a rubber chicken) fails.
-
-        You MUST output only JSON in the following form:
-
-        {
-            "success": boolean,
-            "description": "A 1-sentence narrative of the attempt and outcome."
-        }
-        """, [
+        super().__init__(llm.green_guy_prompt, [
             ("trash bag", True, "You hand him a trash bag and promise to help clean up. He beams and waves you forward."),
             ("hiking boots", True, "You show off your sturdy hiking boots, ready to explore the great outdoors. He nods in approval and lets you pass."),
             ("plastic straw", False, "You offer a plastic straw. He gasps in horror and lectures you for an hour on ocean pollution."),
@@ -271,7 +250,7 @@ class GreenGuyObstacle(Obstacle):
 
     def img_src(self) -> str:
         if self.cleared:
-            return "/static/img/tiles/floor_1.png"
+            return "/static/img/tiles/floor_checker.png"
         else:
             return "/static/img/tiles/greenguy.png"
 

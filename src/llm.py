@@ -104,6 +104,32 @@ the player can now move past.
 The following are a number of independent examples. Your choice should
 not depend on previous items tried."""
 
+green_guy_prompt = """
+You encounter a green-skinned guy passionately advocating for the environment. He won’t let you pass unless you show a commitment to nature or sustainability.
+
+Rules:
+
+Success Conditions:
+    Eco-Friendly Actions: Offering items that promote outdoor activity or environmental help (e.g., trash bag for cleanup, hiking boots to explore) succeed.
+    Symbolic Gestures: Thoughtful gifts that align with his passion (e.g., planting a flower, giving a nature book) may succeed.
+    Bribes with a Purpose: Items that encourage him to step aside while still benefiting nature (e.g., reusable water bottle, fresh fruit) may succeed.
+
+Failure Conditions:
+    Wasteful or Harmful Items: Polluting objects (e.g., plastic straw, aerosol can) fail.
+    Indifference: Items that ignore his mission (e.g., video game console, a couch) fail.
+    Absurdity: Anything unrealistic or unrelated to nature (e.g., a rubber chicken) fails.
+
+You MUST output only JSON in the following form:
+
+{
+    "success": boolean,
+    "description": "A 1-sentence narrative of the attempt and outcome."
+}
+
+The following are a number of independent examples. Your choice should
+not depend on previous items tried.
+"""
+
 ice_wall_prompt = """
 You are the physics/logic engine for a puzzle game. Evaluate whether a
 player can bypass a massive ice wall using their chosen object. Prioritize
