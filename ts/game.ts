@@ -58,7 +58,7 @@ async function sendAction(url: string): Promise<State> {
         .catch(err => state)
 }
 
-function showMessage(message: string, timeout: number = 3000) {
+function showMessage(message: string, timeout: number = 5000) {
     var box = document.getElementById("message-box")!
 
     if (!box.hidden) {
@@ -162,8 +162,10 @@ function renderMap() {
     for (let y = 0; y < state.map.height; y++) {
         for (let x = 0; x < state.map.width; x++) {
             const tile = state.map.tiles[y][x]
-            const img = images.get(tile.img)!
-            gameContext.drawImage(img, 0, 0, img.width, img.height, x, y, 1, 1)
+            const img = images.get(tile.img)
+            if (img !== undefined) {
+                gameContext.drawImage(img, 0, 0, img.width, img.height, x, y, 1, 1)
+            }
         }
     }
 }
@@ -196,7 +198,7 @@ async function preloadImages(): Promise<Map<string, HTMLImageElement>> {
 
     state.map.tiles.forEach(row => row.forEach(tile => {
         const src = tile.img
-        if (!images.has(src)) {
+        if (!images.has(src) && src != "") {
             toLoad.add(src)
         }
     }))

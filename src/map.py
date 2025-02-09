@@ -18,3 +18,6 @@ class Map(object):
             self.tiles.append(row)
 
         self.tiles[4][2] = tile.UpgradeMachine()
+        self.tiles[4][6] = tile.DowngradeMachine()
+        self.tiles[2][4] = tile.SadGuyObstacle()
+        self.tiles[6][4] = tile.IceWallObstacle()
