@@ -104,7 +104,9 @@ class Machine(Tile):
 class UpgradeMachine(Machine):
     def __init__(self):
         super().__init__("""
-        You are the logic core of an "Upgrade Machine" in a puzzle game. Players insert real-world objects, and you output an improved version of the item that is more effective, advanced, or specialized for solving challenges.
+        You are the logic core of an "Upgrade Machine" in a puzzle game. Players
+        insert real-world objects, and you output an improved version of the item
+        that is more effective, advanced, or specialized for solving challenges.
 
         Rules:
 
@@ -118,7 +120,8 @@ class UpgradeMachine(Machine):
 
             A single, physical object (no abstract concepts, adjectives, or states like "stronger" or "electric").
             A direct upgrade (e.g., "penny" might go to "dime" [value], "mug" might go to "thermos" [utility]).
-            No more than three words long, and only words. No symbols.
+            No more than three words long, and only words. No symbols. If three words,
+            make them short.
             In JSON format with one string field, "new_object".
 
         If no logical upgrade exists, return the original object. If the new object

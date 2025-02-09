@@ -8,6 +8,7 @@ const sideTapProximity: number = 128
 const sideMoveProximity: number = 1
 
 var messageTimeoutID: number | undefined = undefined
+var moveWaitTimeoutID: number | undefined = undefined
 
 var cam = { x: 0, y: 0 }
 
@@ -96,7 +97,22 @@ function handleGameClick(event: MouseEvent) {
     else if (y < sideTapProximity) direction = "u"
     else if (y > rect.height - sideTapProximity) direction = "d"
 
-    if (direction) sendAction(`/api/move-player/${direction}`)
+    if (direction) {
+        move(direction)
+    }
+}
+
+function move(direction: string) {
+    if (moveWaitTimeoutID !== undefined) {
+        clearTimeout(moveWaitTimeoutID)
+        moveWaitTimeoutID = undefined
+    }
+
+    moveWaitTimeoutID = setTimeout(() =>
+        showMessage("Processing . . .", 10000), 250)
+
+    sendAction(`/api/move-player/${direction}`)
+        .finally(() => clearTimeout(moveWaitTimeoutID))
 }
 
 function getRealCameraPosition(): { x: number, y: number } {
